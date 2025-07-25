@@ -1,5 +1,3 @@
-// updateBookings.js
-
 const admin = require("firebase-admin");
 const { DateTime } = require("luxon");
 
@@ -17,7 +15,7 @@ async function updateBookings() {
   // Current time in IST
   const nowIST = DateTime.now().setZone("Asia/Kolkata");
 
-  // Fetch bookings
+  // Fetch all bookings
   const bookingsSnapshot = await db.collection("bookings").get();
 
   const updates = [];
@@ -56,7 +54,6 @@ async function updateBookings() {
       if (data.driverId) {
         updates.push(
           db.collection("drivers").doc(data.driverId).update({ isFree: true })
-          
         );
       }
 
@@ -66,6 +63,14 @@ async function updateBookings() {
           db.collection("vehicles").doc(data.vehicleId).update({ isFree: true })
         );
       }
+
+      // Remove driverPhone and vehicleNumberPlate from the booking
+      updates.push(
+        db.collection("bookings").doc(doc.id).update({
+          driverPhone: admin.firestore.FieldValue.delete(),
+          vehicleNumberPlate: admin.firestore.FieldValue.delete(),
+        })
+      );
     }
   });
 
