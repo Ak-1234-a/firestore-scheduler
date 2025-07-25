@@ -13,8 +13,6 @@ const db = admin.firestore();
 async function updateBookings() {
   const now = new Date();
   const bookingsSnapshot = await db.collection("bookings")
-    .where("status", "==", "Pending")
-    .get();
 
   const updates = [];
 
@@ -28,7 +26,6 @@ async function updateBookings() {
 
     if (now > dropDateTime) {
       console.log(`Completing booking: ${doc.id}`);
-      updates.push(doc.ref.update({ status: "Completed" }));
 
       if (data.driverId) {
         updates.push(db.collection("drivers").doc(data.driverId).update({ isFree: true }));
