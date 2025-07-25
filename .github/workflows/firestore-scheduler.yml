@@ -1,0 +1,25 @@
+name: Update Firestore Bookings
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'  
+  workflow_dispatch:        # allow manual run too
+
+jobs:
+  update-bookings:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - run: npm install
+
+      - name: Run Firestore Update Script
+        run: node updateBookings.js
+        env:
+          FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
