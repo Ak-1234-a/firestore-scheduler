@@ -1,6 +1,7 @@
 // updateBookings.js
 
 const admin = require("firebase-admin");
+const { DateTime } = require("luxon");
 
 // Parse Firebase credentials from environment variable
 const credentials = JSON.parse(process.env.FIREBASE_CREDENTIALS);
@@ -13,9 +14,10 @@ admin.initializeApp({
 const db = admin.firestore();
 
 async function updateBookings() {
-  const now = new Date();
+  // Current time in IST
+  const nowIST = DateTime.now().setZone("Asia/Kolkata");
 
-  // Fix: fetch the actual snapshot with .get()
+  // Fetch bookings
   const bookingsSnapshot = await db.collection("bookings").get();
 
   const updates = [];
@@ -29,25 +31,32 @@ async function updateBookings() {
       return;
     }
 
-    // Parse date in format '25/7/2025' and time '3:08 PM'
-    const [day, month, year] = data.dropDate.split("/");
-    const dropDateTimeStr = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")} ${data.dropTime}`;
-    const dropDateTime = new Date(dropDateTimeStr);
+    // Parse dropDate and dropTime in IST
+    const dropDateTimeIST = DateTime.fromFormat(
+      `${data.dropDate} ${data.dropTime}`,
+      "d/M/yyyy h:mm a",
+      { zone: "Asia/Kolkata" }
+    );
 
-    if (isNaN(dropDateTime.getTime())) {
-      console.warn(`Invalid dropDateTime for booking ${doc.id}: ${dropDateTimeStr}`);
+    if (!dropDateTimeIST.isValid) {
+      console.warn(
+        `Invalid dropDateTime for booking ${doc.id}: ${dropDateTimeIST.invalidExplanation}`
+      );
       return;
     }
 
-    console.log(`Processing booking: ${doc.id}, dropDateTime: ${dropDateTime}`, `now: ${now}`);
+    console.log(
+      `Processing booking: ${doc.id}, dropDateTime: ${dropDateTimeIST.toISO()} | now: ${nowIST.toISO()}`
+    );
 
-    if (now > dropDateTime) {
+    if (nowIST > dropDateTimeIST) {
       console.log(`Completing booking: ${doc.id}`);
 
       // Free the driver
       if (data.driverId) {
         updates.push(
           db.collection("drivers").doc(data.driverId).update({ isFree: true })
+          
         );
       }
 
