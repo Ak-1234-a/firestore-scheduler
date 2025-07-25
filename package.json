@@ -1,0 +1,9 @@
+{
+  "name": "firestore-updater",
+  "version": "1.0.0",
+  "main": "updateBookings.js",
+  "type": "module",
+  "dependencies": {
+    "firebase-admin": "^11.10.1"
+  }
+}
