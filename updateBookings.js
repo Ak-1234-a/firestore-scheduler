@@ -39,6 +39,8 @@ async function updateBookings() {
       return;
     }
 
+    console.log(`Processing booking: ${doc.id}, dropDateTime: ${dropDateTime}`);
+
     if (now > dropDateTime) {
       console.log(`Completing booking: ${doc.id}`);
 
