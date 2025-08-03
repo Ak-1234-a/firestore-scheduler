@@ -24,23 +24,23 @@ jobs:
           current_minute=$(date -u +"%M")
           total_minutes=$((10#$current_hour * 60 + 10#$current_minute))
 
+          echo "Current UTC time is $current_hour:$current_minute"
+
           # 10PM IST = 16:30 UTC (990 mins), 5AM IST = 23:30 UTC (1410 mins)
           if [ "$total_minutes" -ge 990 ] && [ "$total_minutes" -lt 1410 ]; then
-            echo "Current UTC time is $current_hour:$current_minute"
             echo "In the blocked window (10PM–5AM IST). Skipping."
-            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "skip=true" >> "$GITHUB_OUTPUT"
           else
-            echo "Current UTC time is $current_hour:$current_minute"
             echo "Outside blocked window. Proceeding."
-            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Install dependencies
-        if: steps.time-check.outputs.skip == 'false'
+        if: ${{ steps.time-check.outputs.skip == 'false' }}
         run: npm install
 
       - name: Run Firestore Update Script
-        if: steps.time-check.outputs.skip == 'false'
+        if: ${{ steps.time-check.outputs.skip == 'false' }}
         run: node updateBookings.js
         env:
           FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
